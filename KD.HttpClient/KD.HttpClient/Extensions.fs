@@ -59,7 +59,7 @@ type HttpClientExtensions() =
         client.GetObjectAsync<'T>(url, Unchecked.defaultof<CancellationToken>)
 
     [<Extension>]
-    static member GetAsync (client: HttpClient, url: Uri, ct: CancellationToken) =
+    static member GetStringAsync (client: HttpClient, url: Uri, ct: CancellationToken) =
         task{
             if isNull url then nullArg "url"
 
@@ -70,5 +70,5 @@ type HttpClientExtensions() =
         }
 
     [<Extension>]
-    static member GetAsync (client: HttpClient, url: Uri) =
+    static member GetStringAsync (client: HttpClient, url: Uri) =
         client.GetAsync(url, Unchecked.defaultof<CancellationToken>)
