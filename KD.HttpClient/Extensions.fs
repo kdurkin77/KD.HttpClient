@@ -7,12 +7,18 @@ open System.Runtime.CompilerServices
 open System.Text
 open System.Threading
 
-[<Extension>]
-type HttpClientExtensions() =
+module private Internal =
+    let isDefault x =
+        Object.Equals(x, Unchecked.defaultof<_>)
+
+open Internal
+
+[<Extension; Sealed; >]
+type HttpClientExtensions =
     [<Extension>]
-    static member PostJsonAsync<'TResult> (client: HttpClient, uri: Uri, value: Object, cancellationToken: CancellationToken) = 
+    static member PostJsonAsync<'TResult, 'TValue when 'TValue: not struct> (client: HttpClient, uri: Uri, value: 'TValue, cancellationToken: CancellationToken) = 
         if isNull uri then nullArg (nameof uri)
-        if isNull value then nullArg (nameof value)
+        if isDefault value then nullArg (nameof value)
 
         task {
             use stringContent = new StringContent(JsonConvert.SerializeObject value, Encoding.UTF8, "application/json")
@@ -23,13 +29,13 @@ type HttpClientExtensions() =
         }
 
     [<Extension>]
-    static member PostJsonAsync<'TResult> (client: HttpClient, uri, value) = 
-        client.PostJsonAsync<'TResult> (uri, value, Unchecked.defaultof<_>)
+    static member PostJsonAsync<'TResult, 'TValue when 'TValue: not struct> (client: HttpClient, uri, value) = 
+        client.PostJsonAsync<'TResult, 'TValue> (uri, value, Unchecked.defaultof<_>)
 
     [<Extension>]
-    static member PostJsonAsync (client: HttpClient, uri: Uri, value: Object, cancellationToken: CancellationToken) =
+    static member PostJsonAsync<'TValue when 'TValue: not struct> (client: HttpClient, uri: Uri, value: 'TValue, cancellationToken: CancellationToken) =
         if isNull uri then nullArg (nameof uri)
-        if isNull value then nullArg (nameof value)
+        if isDefault value then nullArg (nameof value)
 
         task {
             use stringContent = new StringContent(JsonConvert.SerializeObject value, Encoding.UTF8, "application/json")
@@ -39,8 +45,8 @@ type HttpClientExtensions() =
         }
 
     [<Extension>]
-    static member PostJsonAsync (client: HttpClient, uri, value) =
-        client.PostJsonAsync(uri, value, Unchecked.defaultof<_>)
+    static member PostJsonAsync<'TValue when 'TValue: not struct> (client: HttpClient, uri, value) =
+        client.PostJsonAsync<'TValue>(uri, value, Unchecked.defaultof<_>)
 
     [<Extension>]
     static member GetObjectAsync<'T> (client: HttpClient, uri: Uri, cancellationToken: CancellationToken) = 
