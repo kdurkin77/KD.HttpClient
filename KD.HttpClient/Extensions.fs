@@ -10,65 +10,63 @@ open System.Threading
 [<Extension>]
 type HttpClientExtensions() =
     [<Extension>]
-    static member PostJsonAsync<'TResult> (client: HttpClient, url: Uri, values: Object, ct: CancellationToken) = 
-        task {
-            if isNull url then nullArg "url"
-            if isNull values then nullArg "values"
+    static member PostJsonAsync<'TResult> (client: HttpClient, uri: Uri, value: Object, cancellationToken: CancellationToken) = 
+        if isNull uri then nullArg (nameof uri)
+        if isNull value then nullArg (nameof value)
 
-            use stringContent = new StringContent(JsonConvert.SerializeObject values, Encoding.UTF8, "application/json")
-            use! response = client.PostAsync(url, stringContent, ct)
-            let! jsonResult = response.Content.ReadAsStringAsync()
+        task {
+            use stringContent = new StringContent(JsonConvert.SerializeObject value, Encoding.UTF8, "application/json")
+            use! response = client.PostAsync(uri, stringContent, cancellationToken)
             response.EnsureSuccessStatusCode() |> ignore
+            let! jsonResult = response.Content.ReadAsStringAsync()
             return JsonConvert.DeserializeObject<'TResult>(jsonResult)
         }
 
     [<Extension>]
-    static member PostJsonAsync<'TResult> (client: HttpClient, url: Uri, values: Object) = 
-        client.PostJsonAsync<'TResult> (url, values, Unchecked.defaultof<CancellationToken>)
+    static member PostJsonAsync<'TResult> (client: HttpClient, uri, value) = 
+        client.PostJsonAsync<'TResult> (uri, value, Unchecked.defaultof<_>)
 
     [<Extension>]
-    static member PostJsonAsync (client: HttpClient, url: Uri, values: Object, ct: CancellationToken) =
-        task {
-            if isNull url then nullArg "url"
-            if isNull values then nullArg "values"
+    static member PostJsonAsync (client: HttpClient, uri: Uri, value: Object, cancellationToken: CancellationToken) =
+        if isNull uri then nullArg (nameof uri)
+        if isNull value then nullArg (nameof value)
 
-            use stringContent = new StringContent(JsonConvert.SerializeObject values, Encoding.UTF8, "application/json")
-            use! response = client.PostAsync(url, stringContent, ct)
-            let! result = response.Content.ReadAsStringAsync()
+        task {
+            use stringContent = new StringContent(JsonConvert.SerializeObject value, Encoding.UTF8, "application/json")
+            use! response = client.PostAsync(uri, stringContent, cancellationToken)
             response.EnsureSuccessStatusCode() |> ignore
-            return result
+            return! response.Content.ReadAsStringAsync()
         }
 
     [<Extension>]
-    static member PostJsonAsync (client: HttpClient, url: Uri, values: Object) =
-        client.PostJsonAsync(url, values, Unchecked.defaultof<CancellationToken>)
+    static member PostJsonAsync (client: HttpClient, uri, value) =
+        client.PostJsonAsync(uri, value, Unchecked.defaultof<_>)
 
     [<Extension>]
-    static member GetObjectAsync<'T> (client: HttpClient, url: Uri, ct: CancellationToken) = 
-        task {
-            if isNull url then nullArg "url"
+    static member GetObjectAsync<'T> (client: HttpClient, uri: Uri, cancellationToken: CancellationToken) = 
+        if isNull uri then nullArg (nameof uri)
 
-            use! response = client.GetAsync(url, ct)
-            let! jsonResult = response.Content.ReadAsStringAsync()
+        task {
+            use! response = client.GetAsync(uri, cancellationToken)
             response.EnsureSuccessStatusCode() |> ignore
+            let! jsonResult = response.Content.ReadAsStringAsync()
             return JsonConvert.DeserializeObject<'T>(jsonResult)
         }
 
     [<Extension>]
-    static member GetObjectAsync<'T> (client: HttpClient, url: Uri) = 
-        client.GetObjectAsync<'T>(url, Unchecked.defaultof<CancellationToken>)
+    static member GetObjectAsync<'T> (client: HttpClient, uri) = 
+        client.GetObjectAsync<'T>(uri, Unchecked.defaultof<_>)
 
     [<Extension>]
-    static member GetStringAsync (client: HttpClient, url: Uri, ct: CancellationToken) =
-        task{
-            if isNull url then nullArg "url"
+    static member GetStringAsync (client: HttpClient, uri: Uri, cancellationToken: CancellationToken) =
+        if isNull uri then nullArg (nameof uri)
 
-            use! response = client.GetAsync(url, ct)
-            let! result = response.Content.ReadAsStringAsync()
+        task{
+            use! response = client.GetAsync(uri, cancellationToken)
             response.EnsureSuccessStatusCode() |> ignore
-            return result
+            return! response.Content.ReadAsStringAsync()
         }
 
     [<Extension>]
-    static member GetStringAsync (client: HttpClient, url: Uri) =
-        client.GetAsync(url, Unchecked.defaultof<CancellationToken>)
+    static member GetStringAsync (client: HttpClient, uri: Uri) =
+        client.GetStringAsync(uri, Unchecked.defaultof<_>)
