@@ -2,8 +2,18 @@
 
   <PropertyGroup>
     <TargetFrameworks>net5; netstandard2.1; netstandard2.0;</TargetFrameworks>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <WarnOn>3390;$(WarnOn)</WarnOn>
+    <PackageId>KD.HttpClient</PackageId>
+    <Description>Extensions on HttpClient to make Rest API calls a bit cleaner</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Authors>kdurkin77</Authors>
+    <Product>KD.HttpClient</Product>
+    <RepositoryUrl>https://github.com/kdurkin77/KD.HttpClient</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/kdurkin77/KD.HttpClient</PackageProjectUrl>
+    <PackageTags>HttpClient;Rest;Api;Post;Get;Json</PackageTags>
+    <PackageReleaseNotes>
+      Initial Package release
+    </PackageReleaseNotes>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,8 +21,23 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="TaskBuilder.fs" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net5.0'">
+    <PackageReference Include="FSharp.Core" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'!='net5.0'">
+    <PackageReference Include="FSharp.Core" Version="4.7.2" />
   </ItemGroup>
 
 </Project>
