@@ -1,6 +1,5 @@
 ﻿namespace System.Net.Http
 
-open FSharp.Control.Tasks.ContextInsensitive
 open Newtonsoft.Json
 open System
 open System.Runtime.CompilerServices
@@ -20,13 +19,13 @@ type HttpClientExtensions =
         if isNull uri then nullArg (nameof uri)
         if isDefault value then nullArg (nameof value)
 
-        task {
+        async {
             use stringContent = new StringContent(JsonConvert.SerializeObject value, Encoding.UTF8, "application/json")
-            use! response = client.PostAsync(uri, stringContent, cancellationToken)
+            use! response = client.PostAsync(uri, stringContent, cancellationToken) |> Async.AwaitTask
             response.EnsureSuccessStatusCode() |> ignore
-            let! jsonResult = response.Content.ReadAsStringAsync()
+            let! jsonResult = response.Content.ReadAsStringAsync() |> Async.AwaitTask
             return JsonConvert.DeserializeObject<'TResult>(jsonResult)
-        }
+            } |> Async.StartAsTask
 
     [<Extension>]
     static member PostJsonAsync<'TResult, 'TValue when 'TValue: not struct> (client: HttpClient, uri, value) = 
@@ -37,12 +36,12 @@ type HttpClientExtensions =
         if isNull uri then nullArg (nameof uri)
         if isDefault value then nullArg (nameof value)
 
-        task {
+        async {
             use stringContent = new StringContent(JsonConvert.SerializeObject value, Encoding.UTF8, "application/json")
-            use! response = client.PostAsync(uri, stringContent, cancellationToken)
+            use! response = client.PostAsync(uri, stringContent, cancellationToken) |> Async.AwaitTask
             response.EnsureSuccessStatusCode() |> ignore
-            return! response.Content.ReadAsStringAsync()
-        }
+            return! response.Content.ReadAsStringAsync() |> Async.AwaitTask
+            } |> Async.StartAsTask
 
     [<Extension>]
     static member PostJsonAsync<'TValue when 'TValue: not struct> (client: HttpClient, uri, value) =
@@ -52,12 +51,12 @@ type HttpClientExtensions =
     static member GetObjectAsync<'T> (client: HttpClient, uri: Uri, cancellationToken: CancellationToken) = 
         if isNull uri then nullArg (nameof uri)
 
-        task {
-            use! response = client.GetAsync(uri, cancellationToken)
+        async {
+            use! response = client.GetAsync(uri, cancellationToken) |> Async.AwaitTask
             response.EnsureSuccessStatusCode() |> ignore
-            let! jsonResult = response.Content.ReadAsStringAsync()
+            let! jsonResult = response.Content.ReadAsStringAsync() |> Async.AwaitTask
             return JsonConvert.DeserializeObject<'T>(jsonResult)
-        }
+        } |> Async.StartAsTask
 
     [<Extension>]
     static member GetObjectAsync<'T> (client: HttpClient, uri) = 
@@ -67,11 +66,11 @@ type HttpClientExtensions =
     static member GetStringAsync (client: HttpClient, uri: Uri, cancellationToken: CancellationToken) =
         if isNull uri then nullArg (nameof uri)
 
-        task{
-            use! response = client.GetAsync(uri, cancellationToken)
+        async{
+            use! response = client.GetAsync(uri, cancellationToken) |> Async.AwaitTask
             response.EnsureSuccessStatusCode() |> ignore
-            return! response.Content.ReadAsStringAsync()
-        }
+            return! response.Content.ReadAsStringAsync() |> Async.AwaitTask
+        } |> Async.StartAsTask
 
     [<Extension>]
     static member GetStringAsync (client: HttpClient, uri: Uri) =
