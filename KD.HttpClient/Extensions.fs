@@ -13,7 +13,7 @@ module private Internal =
 
 open Internal
 
-[<Extension; Sealed; >]
+[<Extension; Sealed; AbstractClass;>]
 type HttpClientExtensions =
     [<Extension>]
     static member PostJsonAsync<'TResult, 'TValue when 'TValue: not struct> (client: HttpClient, uri: Uri, value: 'TValue, cancellationToken: CancellationToken) = 
