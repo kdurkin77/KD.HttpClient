@@ -11,9 +11,9 @@
     <PackageProjectUrl>https://github.com/kdurkin77/KD.HttpClient</PackageProjectUrl>
     <PackageTags>HttpClient;Rest;Api;Post;Get;Json</PackageTags>
     <PackageReleaseNotes>
-      Added a way to post octetstream and an example with auth and timeout on the client
+      Cleaned up the extension methods
     </PackageReleaseNotes>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
