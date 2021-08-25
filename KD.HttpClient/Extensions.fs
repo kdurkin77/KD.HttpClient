@@ -15,12 +15,21 @@ module private Internal =
     let CreateOctetStreamContent value = fun () -> new ByteArrayContent(value) :> HttpContent
 
     let TypedResponseHandlerAsync<'TResult>(response: HttpResponseMessage, cancellationToken) = async {
-        let! text = response.EnsureSuccessStatusCode().Content.ReadAsStringAsync(cancellationToken) |> Async.AwaitTask
-        return JsonConvert.DeserializeObject<'TResult>(text)
+        #if NET5_0
+            let! text = response.EnsureSuccessStatusCode().Content.ReadAsStringAsync(cancellationToken) |> Async.AwaitTask
+            return JsonConvert.DeserializeObject<'TResult>(text)
+        #else
+            let! text = response.EnsureSuccessStatusCode().Content.ReadAsStringAsync() |> Async.AwaitTask
+            return JsonConvert.DeserializeObject<'TResult>(text)
+        #endif
         }
 
     let StringResponseHandlerAsync(response: HttpResponseMessage, cancellationToken) = async {
-        return! response.EnsureSuccessStatusCode().Content.ReadAsStringAsync(cancellationToken) |> Async.AwaitTask
+        #if NET5_0
+            return! response.EnsureSuccessStatusCode().Content.ReadAsStringAsync(cancellationToken) |> Async.AwaitTask
+        #else
+            return! response.EnsureSuccessStatusCode().Content.ReadAsStringAsync() |> Async.AwaitTask
+        #endif
         }
 
     let SendHttpRequestAsync<'TPayload, 'TResult>(client: HttpClient, httpMethod, uri: Uri, createPayload': (unit -> HttpContent) option, responseHandlerAsync: _ -> Async<'TResult>, cancellationToken: CancellationToken) =
