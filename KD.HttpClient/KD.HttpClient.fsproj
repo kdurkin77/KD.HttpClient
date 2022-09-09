@@ -11,11 +11,9 @@
     <PackageProjectUrl>https://github.com/kdurkin77/KD.HttpClient</PackageProjectUrl>
     <PackageTags>HttpClient;Rest;Api;Post;Get;Json</PackageTags>
     <PackageReleaseNotes>
-      Added support for .NET6
-	  Added PUT extensions
-	  Ensuring we're disposing of the content only when it's not null
+      Added Post extension that doesn't require values to be sent
     </PackageReleaseNotes>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

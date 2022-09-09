@@ -81,6 +81,16 @@ type HttpClientExtensions =
         client.PostJsonAsync<'TValue>(uri, value, CancellationToken.None)
 
     [<Extension>]
+    static member PostJsonAsync<'TResult> (client: HttpClient, uri: Uri, cancellationToken: CancellationToken) = 
+        if isNull uri then nullArg (nameof uri)
+
+        SendHttpRequestAsync<unit, 'TResult>(client, HttpMethod.Post, uri, None, TypedResponseHandlerAsync, cancellationToken)
+
+    [<Extension>]
+    static member PostJsonAsync<'TResult> (client: HttpClient, uri) = 
+        client.PostJsonAsync<'TResult> (uri, CancellationToken.None)
+
+    [<Extension>]
     static member PostOctetStreamAsync<'TResult> (client: HttpClient, uri: Uri, value, cancellationToken) =
         if isNull uri then nullArg (nameof uri)
         if isDefault value then nullArg (nameof value)
