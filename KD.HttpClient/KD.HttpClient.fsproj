@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net5; netstandard2.1; netstandard2.0;</TargetFrameworks>
+    <TargetFrameworks>net6; net5; netstandard2.1; netstandard2.0;</TargetFrameworks>
     <PackageId>KD.HttpClient</PackageId>
     <Description>Extensions on HttpClient to make Rest API calls a bit cleaner</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -11,9 +11,11 @@
     <PackageProjectUrl>https://github.com/kdurkin77/KD.HttpClient</PackageProjectUrl>
     <PackageTags>HttpClient;Rest;Api;Post;Get;Json</PackageTags>
     <PackageReleaseNotes>
-      Cleaned up the extension methods
+      Added support for .NET6
+	  Added PUT extensions
+	  Ensuring we're disposing of the content only when it's not null
     </PackageReleaseNotes>
-    <Version>1.0.2</Version>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,12 +33,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net5.0'">
-    <PackageReference Include="FSharp.Core" Version="5.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'!='net5.0'">
-    <PackageReference Include="FSharp.Core" Version="4.7.2" />
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="6.0.5" />
   </ItemGroup>
 
 </Project>

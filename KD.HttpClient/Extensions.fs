@@ -1,11 +1,14 @@
 ﻿namespace System.Net.Http
 
-open Newtonsoft.Json
 open System
 open System.Runtime.CompilerServices
 open System.Text
 open System.Threading
 
+open Newtonsoft.Json
+
+
+[<AutoOpen>]
 module private Internal =
     let isDefault x =
         Object.Equals(x, Unchecked.defaultof<_>)
@@ -15,7 +18,7 @@ module private Internal =
     let CreateOctetStreamContent value = fun () -> new ByteArrayContent(value) :> HttpContent
 
     let TypedResponseHandlerAsync<'TResult>(response: HttpResponseMessage, cancellationToken) = async {
-        #if NET5_0
+        #if NET5_0_OR_GREATER
             let! text = response.EnsureSuccessStatusCode().Content.ReadAsStringAsync(cancellationToken) |> Async.AwaitTask
             return JsonConvert.DeserializeObject<'TResult>(text)
         #else
@@ -25,7 +28,7 @@ module private Internal =
         }
 
     let StringResponseHandlerAsync(response: HttpResponseMessage, cancellationToken) = async {
-        #if NET5_0
+        #if NET5_0_OR_GREATER
             return! response.EnsureSuccessStatusCode().Content.ReadAsStringAsync(cancellationToken) |> Async.AwaitTask
         #else
             return! response.EnsureSuccessStatusCode().Content.ReadAsStringAsync() |> Async.AwaitTask
@@ -36,19 +39,21 @@ module private Internal =
         async{
             use request = new HttpRequestMessage(httpMethod, uri)
 
-            use _ =
+            let content =
                 createPayload'
                 |> Option.map (fun f ->
                     request.Content <- f ()
                     request.Content
                     )
                 |> Option.toObj
-
-            let! response = client.SendAsync(request, cancellationToken = cancellationToken) |> Async.AwaitTask
-            return! responseHandlerAsync(response, cancellationToken)
+            try
+                let! response = client.SendAsync(request, cancellationToken = cancellationToken) |> Async.AwaitTask
+                return! responseHandlerAsync(response, cancellationToken)
+            finally
+                if not (isNull content) then
+                    content.Dispose()
         } |> Async.StartAsTask
 
-open Internal
 
 [<Extension; Sealed; AbstractClass;>]
 type HttpClientExtensions =
@@ -62,7 +67,7 @@ type HttpClientExtensions =
 
     [<Extension>]
     static member PostJsonAsync<'TResult, 'TValue when 'TValue: not struct> (client: HttpClient, uri, value) = 
-        client.PostJsonAsync<'TResult, 'TValue> (uri, value, Unchecked.defaultof<_>)
+        client.PostJsonAsync<'TResult, 'TValue> (uri, value, CancellationToken.None)
 
     [<Extension>]
     static member PostJsonAsync<'TValue when 'TValue: not struct> (client: HttpClient, uri: Uri, value: 'TValue, cancellationToken: CancellationToken) =
@@ -73,7 +78,7 @@ type HttpClientExtensions =
 
     [<Extension>]
     static member PostJsonAsync<'TValue when 'TValue: not struct> (client: HttpClient, uri, value) =
-        client.PostJsonAsync<'TValue>(uri, value, Unchecked.defaultof<_>)
+        client.PostJsonAsync<'TValue>(uri, value, CancellationToken.None)
 
     [<Extension>]
     static member PostOctetStreamAsync<'TResult> (client: HttpClient, uri: Uri, value, cancellationToken) =
@@ -84,7 +89,7 @@ type HttpClientExtensions =
 
     [<Extension>]
     static member PostOctetStreamAsync<'TResult> (client: HttpClient, uri: Uri, value) =
-        client.PostOctetStreamAsync<'TResult>(uri, value, Unchecked.defaultof<_>)
+        client.PostOctetStreamAsync<'TResult>(uri, value, CancellationToken.None)
 
     [<Extension>]
     static member PostOctetStreamAsync (client: HttpClient, uri: Uri, value, cancellationToken) =
@@ -95,7 +100,7 @@ type HttpClientExtensions =
 
     [<Extension>]
     static member PostOctetStreamAsync (client: HttpClient, uri, value) =
-        client.PostOctetStreamAsync(uri, value, Unchecked.defaultof<_>)
+        client.PostOctetStreamAsync(uri, value, CancellationToken.None)
 
     [<Extension>]
     static member GetObjectAsync<'TResult> (client: HttpClient, uri: Uri, cancellationToken: CancellationToken) = 
@@ -105,7 +110,7 @@ type HttpClientExtensions =
 
     [<Extension>]
     static member GetObjectAsync<'TResult> (client: HttpClient, uri) = 
-        client.GetObjectAsync<'TResult>(uri, Unchecked.defaultof<_>)
+        client.GetObjectAsync<'TResult>(uri, CancellationToken.None)
 
     [<Extension>]
     static member GetStringAsync (client: HttpClient, uri: Uri, cancellationToken: CancellationToken) =
@@ -115,4 +120,15 @@ type HttpClientExtensions =
 
     [<Extension>]
     static member GetStringAsync (client: HttpClient, uri: Uri) =
-        client.GetStringAsync(uri, Unchecked.defaultof<_>)
+        client.GetStringAsync(uri, CancellationToken.None)
+
+    [<Extension>]
+    static member PutJsonAsync<'TResult, 'TValue when 'TValue: not struct> (client: HttpClient, uri: Uri, value: 'TValue, cancellationToken: CancellationToken) = 
+        if isNull uri then nullArg (nameof uri)
+        if isDefault value then nullArg (nameof value)
+
+        SendHttpRequestAsync<'TValue, 'TResult>(client, HttpMethod.Put, uri, Some (CreateJsonContent value), TypedResponseHandlerAsync, cancellationToken)
+
+    [<Extension>]
+    static member PutJsonAsync<'TResult, 'TValue when 'TValue: not struct> (client: HttpClient, uri, value) = 
+        client.PutJsonAsync<'TResult, 'TValue> (uri, value, CancellationToken.None)
